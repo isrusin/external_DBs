@@ -13,4 +13,8 @@ printf "\nExtracting prokaryotic subtree ...\n"
 time $WDIR/extract_subtree.py 2 2157 \
     -i "$WDIR/taxonomy.tab" -o "$WDIR/taxonomy_prokaryotes.tab"
 
+printf "\nExtracting viral subtree ...\n"
+time $WDIR/extract_subtree.py 10239 12884 \
+    -i "$WDIR/taxonomy.tab" -o "$WDIR/taxonomy_viruses.tab"
+
 date "+%D %T"
