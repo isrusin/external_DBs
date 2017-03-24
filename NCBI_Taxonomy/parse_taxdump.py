@@ -1,22 +1,28 @@
-#! /usr/bin/python
+#! /usr/bin/env python
 
-import argparse as ap
-import tarfile as tf
+"""Parse NCBI taxdump archive and write data to TSV file."""
 
-if __name__ == "__main__":
-    parser = ap.ArgumentParser(description="Prepare taxonomy data file.")
+import argparse
+import sys
+import tarfile
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(
+        description="Prepare taxonomy data file."
+    )
     parser.add_argument(
-            "taxdump", metavar="TAXDUMP.tgz", type=ap.FileType("rb"),
-            help="NCBI taxdump file"
-            )
+        "taxdump", metavar="TAXDUMP.tgz", type=argparse.FileType("rb"),
+        help="NCBI taxdump file"
+    )
     parser.add_argument(
-            "-o", dest="outab", metavar="FILE", required=True,
-            type=ap.FileType("w"), help="output file"
-            )
-    args = parser.parse_args()
+        "-o", dest="outab", metavar="FILE", required=True,
+        type=argparse.FileType("w"), help="output file"
+    )
+    args = parser.parse_args(argv)
     names = dict()
     taxids = set()
-    intar = tf.open(fileobj=args.taxdump)
+    intar = tarfile.open(fileobj=args.taxdump)
     innames = intar.extractfile("names.dmp")
     for line in innames:
         vals = line.strip("\n\t|").split("\t|\t")
@@ -50,4 +56,8 @@ if __name__ == "__main__":
                 continue
             rank, ptaxid = ranks[taxid]
             outab.write("\t".join((taxid, ptaxid, name, rank)) + "\n")
+
+
+if __name__ == "__main__":
+    sys.exit(main())
 
