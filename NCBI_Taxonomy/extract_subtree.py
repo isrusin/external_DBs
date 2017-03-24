@@ -1,23 +1,27 @@
-#! /usr/bin/python
+#! /usr/bin/env python
 
-import argparse as ap
+"""Truncate taxonomy file by root taxIDs."""
 
-if __name__ == "__main__":
-    parser = ap.ArgumentParser(
-            description="Truncate taxonomy file by root taxID(s)."
-            )
+import argparse
+import sys
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(
+        description="Truncate taxonomy file by root taxID(s)."
+    )
     parser.add_argument(
-            "root", metavar="TaxID", nargs="+", help="root TaxID"
-            )
+        "root", metavar="TaxID", nargs="+", help="root TaxID"
+    )
     parser.add_argument(
-            "-i", dest="intab", type=ap.FileType("r"),
-            help="input taxonomy file"
-            )
+        "-i", dest="intab", type=argparse.FileType("r"), required=True,
+        help="input taxonomy file"
+    )
     parser.add_argument(
-            "-o", dest="outab", type=ap.FileType("w"),
-            help="truncated taxonomy file"
-            )
-    args = parser.parse_args()
+        "-o", dest="outab", type=argparse.FileType("w"), required=True,
+        help="truncated taxonomy file"
+    )
+    args = parser.parse_args(argv)
     ptaxids = dict()
     with args.intab as intab:
         for line in intab:
@@ -38,4 +42,8 @@ if __name__ == "__main__":
                 taxid, etc = line.split("\t", 1)
                 if taxid in taxids:
                     outab.write(line)
+
+
+if __name__ == "__main__":
+    sys.exit(main())
 
