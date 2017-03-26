@@ -1,27 +1,31 @@
-#! /usr/bin/python
+#! /usr/bin/env python
 
-import argparse as ap
+"""Parse sequence lengths from GenBank Flatfiles."""
+
+import argparse
 import gzip
+import sys
 
-if __name__ == "__main__":
-    parser = ap.ArgumentParser(
-            description="Get sequence lengths by ACv list."
-            )
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(
+        description="Get sequence lengths by ACv list."
+    )
     parser.add_argument(
-            "inpath", metavar="GBK_PATH",
-            help="input gbk path, use {} placeholder instead of ACv"
-            )
+        "inpath", metavar="GBK_PATH",
+        help="input gbk path, use {} placeholder instead of ACv"
+    )
     parser.add_argument(
-            "-l", metavar="IN.acv", dest="inacv", type=ap.FileType("r"),
-            required=True, help="input list of ACvs"
-            )
+        "-l", metavar="LIST", dest="inacv", type=argparse.FileType("r"),
+        required=True, help="input ACv list"
+    )
     parser.add_argument(
-            "-o", metavar="OUT.dct", dest="oudct", type=ap.FileType("w"),
-            required=True, help="output dict file with lengths"
-            )
-    args = parser.parse_args()
+        "-o", metavar="FILE", dest="oudct", type=argparse.FileType("w"),
+        default=sys.stdout, help="output dict file with lengths"
+    )
+    args = parser.parse_args(argv)
     with args.inacv as inacv:
-        acvs = sorted(set(inacv.read().strip().split("\n")))
+        acvs = sorted(set(inacv.read().split()))
     inpath = args.inpath
     if "{" not in inpath:
         inpath += "/{}.gbk.gz"
@@ -30,4 +34,8 @@ if __name__ == "__main__":
             with gzip.open(inpath.format(acv)) as ingbk:
                 length = ingbk.readline().split()[2]
             oudct.write("%s\t%s\n" % (acv, length))
+
+
+if __name__ == "__main__":
+    sys.exit(main())
 
