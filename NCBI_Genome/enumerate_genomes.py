@@ -1,69 +1,77 @@
-#! /usr/bin/python
+#! /usr/bin/env python
 
-import argparse as ap
+"""Assign IDs for genomes from a list."""
 
-if __name__ == "__main__":
-    parser = ap.ArgumentParser(
-            description="Generate enumerated list of complete genome."
-            )
-    parser.add_argument(
-            "-i", dest="intab", required=True, type=ap.FileType("r"),
-            help="input tabular file with genomes"
-            )
-    parser.add_argument(
-            "-t", dest="intax", metavar="taxonomy.tab", required=True,
-            type = ap.FileType("r"), help="input taxonomy file"
-            )
-    parser.add_argument(
-            "-o", dest="outab", required=True, type=ap.FileType("w"),
-            help="output file"
-            )
-    args = parser.parse_args()
+import argparse
+import sys
+
+
+def load_taxons(intax):
     taxons = dict()
-    ptaxids = dict()
-    with args.intax as intax:
+    with intax:
         intax.readline()
         for line in intax:
-            taxid, ptaxid, name, rank = line.strip().split("\t")
-            taxons[taxid] = (name, rank)
-            ptaxids[taxid] = ptaxid
+            taxid, parent, name, rank = line.strip().split("\t")
+            taxons[taxid] = (parent, name, rank)
+    return taxons
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(
+        description="Generate enumerated list of complete genomes."
+    )
+    parser.add_argument(
+        "intab", metavar="GENOMES", type=argparse.FileType("r"),
+        help="tabular file with genomes"
+    )
+    parser.add_argument(
+        "intax", metavar="TAXONS", type=argparse.FileType("r"),
+        help="tabular file with taxons"
+    )
+    parser.add_argument(
+        "-I", dest="idtag", metavar="STUB", default="{}",
+        help="ID stub, use {} as genome number placeholder; default '{}'"
+    )
+    parser.add_argument(
+        "-o", dest="outab", metavar="FILE", type=argparse.FileType("w"),
+        default=sys.stdout, help="output file, default STDOUT"
+    )
+    args = parser.parse_args(argv)
+    idtag = args.idtag
+    taxons = load_taxons(args.intax)
     with args.intab as intab, args.outab as outab:
         columns = intab.readline().strip("\n#").split("\t")
-        c_index = dict([(col, ind) for ind, col in enumerate(columns)])
-        outab.write("GenomeID\tTaxID\tOrganism name\tChromosome ACs\t" +
-                    "Plasmid ACs\tTaxonomy (rank|taxid|name) ...\n")
+        index = dict((col, ind) for ind, col in enumerate(columns))
+        outab.write(
+            "Genome ID\tTaxID\tOrganism name\tChromosome ACs\t"
+            "Plasmid ACs\tTaxonomy (rank|taxid|name) ...\n"
+        )
         num = 0
         for line in intab:
             vals = line.strip().split("\t")
-            name = vals[c_index["Organism/Name"]]
-            itaxid = taxid = vals[c_index["TaxID"]]
-            if itaxid not in ptaxids:
-                print "%s is not valid, %s is skipped!" % (taxid, name)
-                continue
-            l_acvs = set(vals[c_index["Chromosomes/INSDC"]].split(","))
-            acvs = ",".join(sorted(l_acvs))
-            s_acvs = set(vals[c_index["Plasmids/INSDC"]].split(","))
-            s_acvs.discard("-")
-            acvs += "\t" + ",".join(sorted(s_acvs))
+            taxid = vals[index["TaxID"]]
             taxonomy = []
-            ptaxid = ptaxids[itaxid]
-            sname, rank = taxons[itaxid]
-            while rank != "species":
-                itaxid = ptaxid
-                if itaxid not in ptaxids:
-                    print "%s has no species, skipped!" % name
-                    break
-                ptaxid = ptaxids[itaxid]
-                sname, rank = taxons[itaxid]
-            else:
-                while ptaxid in ptaxids:
-                    taxonomy.append("%s|%s|%s" % (rank, itaxid, sname))
-                    itaxid = ptaxid
-                    ptaxid = ptaxids[itaxid]
-                    sname, rank = taxons[itaxid]
-                taxonomy.append("%s|%s|%s" % (rank, itaxid, sname))
-                tax_str = "\t".join(taxonomy)
-                outab.write("{}\t{}\t{}\t{}\t{}\n".format(num, taxid, name,
-                                                          acvs, tax_str))
-                num += 1
+            while taxid in taxons:
+                parent, sname, rank = taxons[taxid]
+                if taxonomy or rank == "species":
+                    taxonomy.append("%s|%s|%s" % (rank, taxid, sname))
+                taxid = parent
+            if not taxonomy:
+                print "%s has invalid taxID or no species, skipped!" % name
+                continue
+            name = vals[index["Organism/Name"]]
+            ouline = [idtag.format(num), taxid, name]
+            acs = set(vals[index["Chromosomes/INSDC"]].split(","))
+            ouline.append(",".join(sorted(acs)))
+            acs = set(vals[index["Plasmids/INSDC"]].split(","))
+            acs.discard("-")
+            ouline.append(",".join(sorted(acs)))
+            ouline.extend(taxonomy)
+            outab.write("\t".join(ouline) + "\n")
+            num += 1
     print "%d genomes were enumerated." % num
+
+
+if __name__ == "__main__":
+    sys.exit(main())
+

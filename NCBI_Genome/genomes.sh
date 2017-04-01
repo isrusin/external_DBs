@@ -21,8 +21,8 @@ printf "Searching for repeated ACs ...\n"
 time $WDIR/report_repeats.py "$WDIR/complete_genomes.tab"
 
 printf "Enumerating genomes ...\n"
-time $WDIR/enumerate_genomes.py -t "$TAXDIR/taxonomy_prokaryotes.tab" \
-    -i "$WDIR/complete_genomes.tab" -o "$WDIR/enumerated_genomes.tab"
+time $WDIR/enumerate_genomes.py -o "$WDIR/enumerated_genomes.tab" \
+    "$WDIR/complete_genomes.tab" "$TAXDIR/taxonomy_prokaryotes.tab"
 
 tail -n+2 "$WDIR/enumerated_genomes.tab" | cut -f 4 | \
     grep -Eo "[^,]+" | sort -u > chromosomes.acvs
