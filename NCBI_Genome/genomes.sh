@@ -13,7 +13,7 @@ wget -NP "$WDIR" \
 
 printf "Filtering the list of genomes ...\n"
 time $WDIR/filter_genomes.py --no-wgs --with-chromosomes --min-size=0.1 \
-    -i "$WDIR/prokaryotes.txt" -o "$WDIR/complete_genomes.tab" \
+    -o "$WDIR/complete_genomes.tab" "$WDIR/prokaryotes.txt" \
     "Complete" "Complete Genome" "Gapless Chromosome" "Chromosome" \
     "Chromosome with gaps"
 

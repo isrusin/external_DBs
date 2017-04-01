@@ -1,36 +1,40 @@
-#! /usr/bin/python
+#! /usr/bin/env python
 
-import argparse as ap
+"""Filter NCBI prokaryotic genome list by one or several statuses."""
 
-if __name__ == "__main__":
-    parser = ap.ArgumentParser(
-            description="Return genomes with specified status[es]."
-            )
+import argparse
+import sys
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(
+        description="Return genomes with specified status(es)."
+    )
     parser.add_argument(
-            "status", metavar="STATUS", nargs="+",
-            help="status to return, replace spaces with '-'"
-            )
+        "intxt", metavar="FILE", type=argparse.FileType("r"),
+        help="prokaryotes.txt file from NCBI FTP server"
+    )
     parser.add_argument(
-            "-i", dest="intxt", required=True, type=ap.FileType("r"),
-            help="input prokaryotes.txt file loaded from NCBI server"
-            )
+        "status", metavar="STATUS", nargs="+",
+        help="status to return, replace spaces with '-'"
+    )
     parser.add_argument(
-            "-o", dest="outab", required=True, type=ap.FileType("w"),
-            help="output tabular file"
-            )
+        "-o", dest="outab", metavar="FILE", type=argparse.FileType("w"),
+        default=sys.stdout, help="output tabular file, default STDOUT"
+    )
     parser.add_argument(
-            "--no-wgs", dest="no_wgs", action="store_true",
-            help="do not include genomes that have WGS accession"
-            )
+        "--no-wgs", dest="no_wgs", action="store_true",
+        help="do not include genomes that have WGS accession"
+    )
     parser.add_argument(
-            "--with-chromosomes", dest="with_chr", action="store_true",
-            help="do not include genomes without chromosomes (INSDC)"
-            )
+        "--with-chromosomes", dest="with_chr", action="store_true",
+        help="do not include genomes without chromosomes (INSDC)"
+    )
     parser.add_argument(
-            "--min-size", dest="min_size", type=float, default=0,
-            help="minimum genome size (Mb), default is 0 Mb"
-            )
-    args = parser.parse_args()
+        "--min-size", dest="min_size", metavar="SIZE", type=float,
+        default=0, help="minimum genome size (Mb), default is 0 Mb"
+    )
+    args = parser.parse_args(argv)
     status = set([tag.replace("_", " ") for tag in args.status])
     with args.intxt as intxt, args.outab as outab:
         title = intxt.readline()
@@ -52,4 +56,8 @@ if __name__ == "__main__":
                 print "%s is too short, skipped" % bioproject
                 continue
             outab.write(line)
+
+
+if __name__ == "__main__":
+    sys.exit(main())
 
