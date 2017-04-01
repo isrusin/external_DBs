@@ -1,22 +1,27 @@
-#! /usr/bin/python
+#! /usr/bin/env python
 
-import argparse as ap
+"""Search for and report about genomes with repeated values."""
 
-def print_repeats(counts, tag):
+import argparse
+import sys
+
+
+def report_repeats(counts, tag):
     print "%ss number is %d" % (tag, len(counts))
     for key, count in sorted(counts.items()):
         if count > 1:
-            print "\t%s repeated %d times" % (key, count)
+            print "\t%s is repeated %d times" % (key, count)
 
-if __name__ == "__main__":
-    parser = ap.ArgumentParser(
-            description="Get report about repeated genomes."
-            )
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(
+        description="Get report about repeated genomes."
+    )
     parser.add_argument(
-            "intab", metavar="GENOMES.tab", type=ap.FileType("r"),
-            help="input file with genomes"
-            )
-    args = parser.parse_args()
+        "intab", metavar="FILE", type=argparse.FileType("r"),
+        help="input file with genomes"
+    )
+    args = parser.parse_args(argv)
     taxids = dict()
     bpacs = dict()
     pairs = dict()
@@ -37,8 +42,12 @@ if __name__ == "__main__":
             if vals[c_index["Plasmids/INSDC"]] != "-":
                 for gcac in vals[c_index["Plasmids/INSDC"]].split(","):
                     gcacs[gcac] = gcacs.get(gcac, 0) + 1
-    print_repeats(taxids, "TaxID")
-    print_repeats(bpacs, "BioProjectAC")
-    print_repeats(pairs, "TaxID-BioProjectAC pair")
-    print_repeats(gcacs, "INSDC AC")
+    report_repeats(taxids, "TaxID")
+    report_repeats(bpacs, "BioProjectAC")
+    report_repeats(pairs, "TaxID-BioProjectAC pair")
+    report_repeats(gcacs, "INSDC AC")
+
+
+if __name__ == "__main__":
+    sys.exit(main)
 
