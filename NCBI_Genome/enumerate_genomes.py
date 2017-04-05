@@ -44,12 +44,14 @@ def main(argv=None):
         index = dict((col, ind) for ind, col in enumerate(columns))
         outab.write(
             "Genome ID\tTaxID\tOrganism name\tChromosome ACs\t"
-            "Plasmid ACs\tTaxonomy (rank|taxid|name) ...\n"
+            "Plasmid ACs\tOther ACs\tTaxonomy (rank|taxid|name) ...\n"
         )
         num = 0
         for line in intab:
             vals = line.strip().split("\t")
+            name = vals[index["Organism/Name"]]
             taxid = vals[index["TaxID"]]
+            ouline = [idtag.format(num), taxid, name]
             taxonomy = []
             while taxid in taxons:
                 parent, sname, rank = taxons[taxid]
@@ -59,13 +61,20 @@ def main(argv=None):
             if not taxonomy:
                 print "%s has invalid taxID or no species, skipped!" % name
                 continue
-            name = vals[index["Organism/Name"]]
-            ouline = [idtag.format(num), taxid, name]
-            acs = set(vals[index["Chromosomes/INSDC"]].split(","))
-            ouline.append(",".join(sorted(acs)))
-            acs = set(vals[index["Plasmids/INSDC"]].split(","))
-            acs.discard("-")
-            ouline.append(",".join(sorted(acs)))
+            chromosomes = set()
+            plasmids = set()
+            other = set()
+            for tag in vals[index["Replicons"]].split("; "):
+                seq_name, acv = tag.strip().split(":")
+                if seq_name.startswith("chromosome"):
+                    chromosomes.add(acv.strip("/"))
+                elif seq_name.startswith("plasmid"):
+                    plasmids.add(acv.strip("/"))
+                else:
+                    other.add(acv.strip("/"))
+            ouline.append(",".join(sorted(chromosomes)))
+            ouline.append(",".join(sorted(plasmids)))
+            ouline.append(",".join(sorted(other)))
             ouline.extend(taxonomy)
             outab.write("\t".join(ouline) + "\n")
             num += 1
