@@ -28,7 +28,7 @@ def main(argv=None):
     )
     parser.add_argument(
         "--with-chromosomes", dest="with_chr", action="store_true",
-        help="do not include genomes without chromosomes (INSDC)"
+        help="do not include genomes without chromosomes"
     )
     parser.add_argument(
         "--min-size", dest="min_size", metavar="SIZE", type=float,
@@ -43,17 +43,23 @@ def main(argv=None):
         outab.write(title)
         for line in intxt:
             vals = line.strip().split("\t")
-            bioproject = vals[c_index["BioProject Accession"]]
+            project = vals[c_index["BioProject Accession"]]
             if vals[c_index["Status"]] not in status:
                 continue
-            if args.with_chr and vals[c_index["Chromosomes/INSDC"]] == "-":
-                print "%s has no INSDC chromosomes, skipped" % bioproject
-                continue
+            if args.with_chr:
+                repls = vals[c_index["Replicons"]]
+                for repl_tag in repls.split(";"):
+                    seq_tag, acv_tag = repl_tag.strip().rsplit(":", 1)
+                    if seq_tag.startswith("chromosome"):
+                        break
+                else:
+                    print "%s has no chromosomes, skipped" % project
+                    continue
             if args.no_wgs and vals[c_index["WGS"]] != "-":
-                print "%s has WGS accession, skipped" % bioproject
+                print "%s has WGS accession, skipped" % project
                 continue
             if float(vals[c_index["Size (Mb)"]]) < args.min_size:
-                print "%s is too short, skipped" % bioproject
+                print "%s is too short, skipped" % project
                 continue
             outab.write(line)
 
