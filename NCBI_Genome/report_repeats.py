@@ -8,6 +8,8 @@ import sys
 
 def report_repeats(counts, tag):
     print "%ss number is %d" % (tag, len(counts))
+    if not counts:
+        print "\tThere is no repeated %ss" % tag
     for key, count in sorted(counts.items()):
         if count > 1:
             print "\t%s is repeated %d times" % (key, count)
@@ -23,29 +25,28 @@ def main(argv=None):
     )
     args = parser.parse_args(argv)
     taxids = dict()
-    bpacs = dict()
+    bps = dict()
     pairs = dict()
-    gcacs = dict()
+    acs = dict()
     with args.intab as intab:
         columns = intab.readline().strip("\n#").split("\t")
         c_index = dict([(col, ind) for ind, col in enumerate(columns)])
         for line in intab:
             vals = line.strip().split("\t")
             taxid = vals[c_index["TaxID"]]
-            bpac = vals[c_index["BioProject Accession"]]
-            pair = taxid + "-" + bpac
+            bp = vals[c_index["BioProject Accession"]]
+            pair = taxid + "-" + bp
             taxids[taxid] = taxids.get(taxid, 0) + 1
-            bpacs[bpac] = bpacs.get(bpac, 0) + 1
+            bps[bp] = bps.get(bp, 0) + 1
             pairs[pair] = pairs.get(pair, 0) + 1
-            for gcac in vals[c_index["Chromosomes/INSDC"]].split(","):
-                gcacs[gcac] = gcacs.get(gcac, 0) + 1
-            if vals[c_index["Plasmids/INSDC"]] != "-":
-                for gcac in vals[c_index["Plasmids/INSDC"]].split(","):
-                    gcacs[gcac] = gcacs.get(gcac, 0) + 1
+            for tag in vals[c_index["Replicons"]].split("; "):
+                _seq, acvs = tag.strip(" /").split(":")
+                for acv in acvs.split("/"):
+                    acs[acv] = acs.get(acv, 0) + 1
     report_repeats(taxids, "TaxID")
-    report_repeats(bpacs, "BioProjectAC")
+    report_repeats(bps, "BioProjectAC")
     report_repeats(pairs, "TaxID-BioProjectAC pair")
-    report_repeats(gcacs, "INSDC AC")
+    report_repeats(acs, "AC")
 
 
 if __name__ == "__main__":
