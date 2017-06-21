@@ -32,7 +32,7 @@ def get_missed(inacvs, wdir, verbose=True):
     with inacvs:
         acvs.update(inacvs.read().split())
     try:
-        with open("%s/.acvs" % wdir) as dump:
+        with open("%s/.acv" % wdir) as dump:
             loaded = set(dump.read().split())
             loaded_acs = set()
             for acv in loaded:
@@ -112,7 +112,7 @@ def update_dump(wdir, verbose=True):
         facvs.add(name.split(".fasta")[0])
     acvs = list(gacvs.intersection(facvs))
     acvs.sort()
-    with open(wdir + "/.acvs", "w") as ouacvs:
+    with open(wdir + "/.acv", "w") as ouacvs:
         ouacvs.write("\n".join(acvs) + "\n")
     if verbose:
         print "%d records in the database." % len(acvs)
