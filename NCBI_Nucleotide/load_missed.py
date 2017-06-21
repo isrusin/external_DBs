@@ -33,11 +33,17 @@ def get_missed(inacvs, wdir, verbose=True):
         acvs.update(inacvs.read().split())
     try:
         with open("%s/.acvs" % wdir) as dump:
-            acvs.difference_update(dump.read().split())
+            loaded = set(dump.read().split())
+            loaded_acs = set()
+            for acv in loaded:
+                ac = acv.split(".")[0]
+                loaded_acs.add(ac)
+            loaded.update(loaded_acs)
+            acvs.difference_update(loaded)
     except IOError:
         pass
     if verbose:
-        print "%d ACvs are missed." % len(acvs)
+        print "%d AC(v)s are missed." % len(acvs)
     return sorted(acvs)
 
 
