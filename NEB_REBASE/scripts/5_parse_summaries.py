@@ -40,7 +40,7 @@ tag_p = re.compile(r"<td[^>]*><i>(?P<tag>[^<]+)</i></td>", re.S)
 rm_p = re.compile(
     r"""
       <td[^>]*>(?P<locus>(?:\d+)|(?:\?{3})) \s* </td> \s* # locus
-      <td[^>]*>(?P<type>RM?|M|S|C|V)</td> \s* # protein type
+      <td[^>]*>(?P<type>RM?|M|S|C|V|H)</td> \s* # protein type
       <td[^>]*>(?P<sim>[^<]+)</td> \s* # most similar protein
       <td[^>]*>(?P<seq>.+?)</td> \s* # recognition sequence
       <td[^>]*>(?P<name>[-.A-Za-z0-9]+) \s* </td> # REBASE protein name
