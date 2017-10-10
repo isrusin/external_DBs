@@ -3,11 +3,12 @@
 """Load missed NCBI Nucleotide entries through efetch request.
 
 * Get list of missed ACs.
-* Send a request to Entrez Direct Fetch util.
-* Split th uploaded GenBank Flatfile by entries, save sequences in
+* Send a request to Entrez Fetch util.
+* Split the uploaded GenBank Flatfile by entries, save sequences in
 separate Fasta files; gzip everything.
 """
 
+from __future__ import print_function
 import argparse
 import gzip
 import os
@@ -43,7 +44,7 @@ def get_missed(inacvs, wdir, verbose=True):
     except IOError:
         pass
     if verbose:
-        print "%d AC(v)s are missed." % len(acvs)
+        print("%d AC(v)s are missed." % len(acvs), file=sys.stderr)
     return sorted(acvs)
 
 
@@ -89,7 +90,10 @@ def parse_gbk(ingbk, wdir, verbose=True):
                     break
                 if line.startswith("//"):
                     if verbose:
-                        print "%s record has no sequence!\n" % acv
+                        print(
+                            "%s record has no sequence!\n" % acv,
+                            file=sys.stderr
+                        )
                     break
         with gzip.open(fasta_path % (wdir, acv), "w", 5) as oufasta:
             oufasta.write(">%s%s\n" % (acv, de))
@@ -100,7 +104,10 @@ def parse_gbk(ingbk, wdir, verbose=True):
                     break
                 oufasta.write(line[10:].replace(" ", ""))
         if verbose:
-            print "%d\t%s was loaded." % (count, acv)
+            print(
+                "%d\t%s was loaded." % (count, acv),
+                file=sys.stderr
+            )
 
 
 def update_dump(wdir, verbose=True):
@@ -115,7 +122,10 @@ def update_dump(wdir, verbose=True):
     with open(wdir + "/.acv", "w") as ouacvs:
         ouacvs.write("\n".join(acvs) + "\n")
     if verbose:
-        print "%d records in the database." % len(acvs)
+        print(
+            "%d records in the database." % len(acvs),
+            file=sys.stderr
+        )
 
 
 def main(argv=None):
