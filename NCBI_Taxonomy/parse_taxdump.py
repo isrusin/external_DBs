@@ -31,7 +31,7 @@ def main(argv=None):
         if vals[3] == "scientific name":
             names[taxid] = name
     innames.close()
-    print "%d taxons were loaded" % len(taxids)
+    print "%d taxons were loaded." % len(taxids)
     missed = len(taxids) - len(names)
     if missed:
         print "%d taxids have no scientific names!" % missed
