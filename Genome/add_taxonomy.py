@@ -2,6 +2,7 @@
 
 """Add taxonomy to input table of genomes and reformat it."""
 
+from __future__ import print_function
 import argparse
 import sys
 
@@ -57,10 +58,10 @@ def main(argv=None):
                     taxonomy.append("%s|%s|%s" % (rank, taxid, sname))
                 taxid = parent
             if not taxonomy:
-                print (
-                    "Warning: assembly %s has invalid taxID "
-                    "or no species, skipped!"
-                ) % asac
+                print(
+                    "Warning: assembly %s has invalid taxID" % asac,
+                    "or no species, skipped!", file=sys.stderr
+                )
                 continue
             chromosomes = set()
             plasmids = set()
@@ -69,10 +70,11 @@ def main(argv=None):
             if replicons != "-":
                 for tag in replicons.split("; "):
                     if ":" not in tag:
-                        print (
-                            "Info: assembly %s contains replicon "
-                            "'%s' without sequence AC."
-                        ) % (asac, tag)
+                        print(
+                            "Info: assembly %s contains replicon" % asac,
+                            "'%s' without sequence AC." % tag,
+                            file=sys.stderr
+                        )
                         continue
                     seq_name, acv = tag.strip().split(":")
                     if seq_name.startswith("chromosome"):
@@ -82,14 +84,20 @@ def main(argv=None):
                     else:
                         other.add(acv.strip("/"))
             else:
-                print "Info: assembly %s has no replicons." % asac
+                print(
+                    "Info: assembly %s has no replicons." % asac,
+                    file=sys.stderr
+                )
             ouline.append(",".join(sorted(chromosomes)))
             ouline.append(",".join(sorted(plasmids)))
             ouline.append(",".join(sorted(other)))
             ouline.extend(taxonomy)
             outab.write("\t".join(ouline) + "\n")
             num += 1
-    print "There are %d genomes in the resulted table." % num
+    print(
+        "There are %d genomes in the resulted table." % num,
+        file=sys.stderr
+    )
 
 
 if __name__ == "__main__":
