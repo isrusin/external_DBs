@@ -57,23 +57,23 @@ time $SDIR/8_parse_azlist.py "$WDIR/azlist/IIG.html" > "$WDIR/IIG.nms"
 printf "FTP section ...\n"
 
 mkdir "$WDIR/ftp"
-wget -P "$WDIR/ftp/" ftp://ftp.neb.com/pub/rebase/dna_seqs.txt
+wget -nv -NP "$WDIR/ftp/" ftp://ftp.neb.com/pub/rebase/dna_seqs.txt
 sed -i "1d; s/<>//; /^$/d" "$WDIR/ftp/dna_seqs.txt"
 printf "9_parse_seqs.py ... DNA\n"
 time $SDIR/9_parse_seqs.py "$WDIR/ftp/dna_seqs.txt" \
         "$WDIR/dna_seqs.tab" "$WDIR/dna_seqs.fasta"
-wget -P "$WDIR/ftp/" ftp://ftp.neb.com/pub/rebase/protein_seqs.txt
+wget -nv -NP "$WDIR/ftp/" ftp://ftp.neb.com/pub/rebase/protein_seqs.txt
 sed -i "1d; s/<>//; /^$/d" "$WDIR/ftp/protein_seqs.txt"
 printf "9_parse_seqs.py ... proteins\n"
 time $SDIR/9_parse_seqs.py "$WDIR/ftp/protein_seqs.txt" \
         "$WDIR/protein_seqs.tab" "$WDIR/protein_seqs.fasta"
 
-wget -P "$WDIR/ftp/" ftp://ftp.neb.com/pub/rebase/allenz.txt
+wget -nv -NP "$WDIR/ftp/" ftp://ftp.neb.com/pub/rebase/allenz.txt
 printf "10_parse_allenz.py ...\n"
 time $SDIR/10_parse_allenz.py "$WDIR/ftp/allenz.txt" \
         -o "$WDIR/allenz.tab"
 
-wget -P "$WDIR/ftp/" ftp://ftp.neb.com/pub/rebase/bairoch.txt
+wget -nv -NP "$WDIR/ftp/" ftp://ftp.neb.com/pub/rebase/bairoch.txt
 printf "11_parse_bairoch.py ...\n"
 time $SDIR/11_parse_bairoch.py "$WDIR/ftp/bairoch.txt" \
         -o "$WDIR/bairoch.tab"
