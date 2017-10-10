@@ -17,11 +17,12 @@ def main(argv=None):
     )
     parser.add_argument(
         "-l", metavar="LIST", dest="inacv", type=argparse.FileType("r"),
-        required=True, help="input ACv list"
+        default=sys.stdin, help="input ACv list, default STDIN"
     )
     parser.add_argument(
         "-o", metavar="FILE", dest="oudct", type=argparse.FileType("w"),
-        default=sys.stdout, help="output dict file with lengths"
+        default=sys.stdout, help="output dict file with lengths,"
+        " default STDOUT"
     )
     args = parser.parse_args(argv)
     with args.inacv as inacv:
