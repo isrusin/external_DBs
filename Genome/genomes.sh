@@ -16,10 +16,8 @@ if [ -n "$2" ]
     fi
 fi
 
-TAG="$(date "+%y%m%d")_{}"
-
 date "+%d-%m-%Y %T"
-printf "Working folder: $WDIR\nTaxonomy source: $TAXDIR\nID tag: $TAG\n"
+printf "Working folder: $WDIR\nTaxonomy source: $TAXDIR\n"
 
 wget -nv -NP "$WDIR" \
     ftp://ftp.ncbi.nlm.nih.gov/genomes/GENOME_REPORTS/prokaryotes.txt
@@ -27,22 +25,22 @@ wget -nv -NP "$WDIR" \
 printf "\nFiltering the list of genomes ...\n"
 "$SDIR/filter_genomes.py" --with-chromosomes --min-size=0.1 \
     -o "$WDIR/complete_prokaryotes.tsv" "$WDIR/prokaryotes.txt" \
-    "Complete" "Complete Genome" "Chromosome"
+    "Complete Genome" "Chromosome"
 
 printf "\nSearching for repeated IDs ...\n"
 "$SDIR/report_repeats.py" "$WDIR/complete_prokaryotes.tsv"
 
-printf "\nEnumerating genomes ...\n"
-"$SDIR/enumerate_genomes.py" -I "$TAG" -o "$WDIR/genomes.tsv" \
+printf "\nAppending taxonomy ...\n"
+"$SDIR/add_taxonomy.py" -o "$WDIR/genomes.tsv" \
     "$WDIR/complete_prokaryotes.tsv" "$TAXDIR/taxonomy_prokaryotes.tsv"
 
-tail -n+2 "$WDIR/genomes.tsv" | cut -f 4 | \
+tail -n+2 "$WDIR/genomes.tsv" | cut -f 6 | \
     grep -Eo "[^,]+" | sort -u > "$WDIR/chromosomes.acv"
 
-tail -n+2 "$WDIR/genomes.tsv" | cut -f 5 | \
+tail -n+2 "$WDIR/genomes.tsv" | cut -f 7 | \
     grep -Eo "[^,]+" | sort -u > "$WDIR/plasmids.acv"
 
-tail -n+2 "$WDIR/genomes.tsv" | cut -f 6 | \
+tail -n+2 "$WDIR/genomes.tsv" | cut -f 8 | \
     grep -Eo "[^,]+" | sort -u > "$WDIR/other.acv"
 
 date "+%d-%m-%Y %T"

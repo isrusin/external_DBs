@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 
-"""Assign IDs for genomes from a list."""
+"""Add taxonomy to input table of genomes and reformat it."""
 
 import argparse
 import sys
@@ -18,7 +18,7 @@ def load_taxons(intax):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(
-        description="Generate enumerated list of complete genomes."
+        description="Append taxonomy and reformat genomes table."
     )
     parser.add_argument(
         "intab", metavar="GENOMES", type=argparse.FileType("r"),
