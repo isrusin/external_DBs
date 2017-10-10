@@ -2,6 +2,7 @@
 
 """Truncate taxonomy file by root taxIDs."""
 
+from __future__ import print_function
 import argparse
 import sys
 
@@ -11,7 +12,7 @@ def main(argv=None):
         description="Truncate taxonomy file by root taxID(s)."
     )
     parser.add_argument(
-        "root", metavar="TaxID", nargs="+", help="root TaxID"
+        "root", metavar="TaxID", nargs="+", help="root taxID"
     )
     parser.add_argument(
         "-i", dest="intab", type=argparse.FileType("r"), required=True,
@@ -34,7 +35,7 @@ def main(argv=None):
             for taxid, ptaxid in ptaxids.items():
                 if ptaxid in taxids:
                     taxids.add(taxid)
-        print "%d TaxIDs were selected." % size
+        print("%d TaxIDs were selected." % size, file=sys.stderr)
         intab.seek(0)
         with args.outab as outab:
             outab.write(intab.readline())
