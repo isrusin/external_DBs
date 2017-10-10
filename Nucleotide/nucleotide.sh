@@ -4,18 +4,18 @@ WDIR=$(dirname $0)
 GDIR="$WDIR/../NCBI_Genome"
 if [ -n "$1" ]; then GDIR=$1; fi
 
-printf "ACvs source: $GDIR\n"
+printf "ACv source: $GDIR\n"
 
-date "+%D %T"
+date "+%d-%m-%Y %T"
 
 printf "Downloading plasmids ...\n"
-time $WDIR/load_missed.py "$GDIR/plasmids.acvs" -s "$WDIR"
+time $WDIR/load_missed.py "$GDIR/plasmids.acv" -s "$WDIR"
 
 printf "Downloading chromosomes ...\n"
-time $WDIR/load_missed.py "$GDIR/chromosomes.acvs" -s "$WDIR"
+time $WDIR/load_missed.py "$GDIR/chromosomes.acv" -s "$WDIR"
 
 printf "Getting lengths ...\n"
-time $WDIR/get_lengths.py "$WDIR/gbk/{}.gbk.gz" -l "$WDIR/.acvs"
+time $WDIR/get_lengths.py "$WDIR/gbk/{}.gbk.gz" -l "$WDIR/.acv"
     -o "$WDIR/acv2len.dct"
 
-date "+%D %T"
+date "+%d-%m-%Y %T"
