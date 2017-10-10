@@ -1,22 +1,23 @@
 #! /usr/bin/env python
 
-"""Filter NCBI prokaryotic genome list by one or several statuses."""
+"""Filter NCBI list of prokaryotic genomes by status, length, etc."""
 
+from __future__ import print_function
 import argparse
 import sys
 
 
 def main(argv=None):
     parser = argparse.ArgumentParser(
-        description="Return genomes with specified status(es)."
+        description="Filter input list of genomes by status, length, etc."
     )
     parser.add_argument(
         "intxt", metavar="FILE", type=argparse.FileType("r"),
-        help="prokaryotes.txt file from NCBI FTP server"
+        help="prokaryotes.txt file from the NCBI FTP server"
     )
     parser.add_argument(
         "status", metavar="STATUS", nargs="+",
-        help="status to return, replace spaces with '-'"
+        help="status to keep, you could replace spaces with '_'"
     )
     parser.add_argument(
         "-o", dest="outab", metavar="FILE", type=argparse.FileType("w"),
@@ -49,20 +50,32 @@ def main(argv=None):
             if args.with_chr:
                 repls = vals[c_index["Replicons"]]
                 if repls == "-":
-                    print "%s has no replicons, skipped" % project
+                    print(
+                        "%s has no replicons, skipped" % project,
+                        file=sys.stderr
+                    )
                     continue
                 for repl_tag in repls.split(";"):
                     seq_tag, acv_tag = repl_tag.strip().rsplit(":", 1)
                     if seq_tag.startswith("chromosome"):
                         break
                 else:
-                    print "%s has no chromosomes, skipped" % project
+                    print(
+                        "%s has no chromosomes, skipped" % project,
+                        file=sys.stderr
+                    )
                     continue
             if args.no_wgs and vals[c_index["WGS"]] != "-":
-                print "%s has WGS accession, skipped" % project
+                print(
+                    "%s has WGS accession, skipped" % project,
+                    file=sys.stderr
+                )
                 continue
             if float(vals[c_index["Size (Mb)"]]) < args.min_size:
-                print "%s is too short, skipped" % project
+                print(
+                    "%s is too short, skipped" % project,
+                    file=sys.stderr
+                )
                 continue
             outab.write(line)
 
