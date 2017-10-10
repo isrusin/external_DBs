@@ -48,6 +48,9 @@ def main(argv=None):
                 continue
             if args.with_chr:
                 repls = vals[c_index["Replicons"]]
+                if repls == "-":
+                    print "%s has no replicons, skipped" % project
+                    continue
                 for repl_tag in repls.split(";"):
                     seq_tag, acv_tag = repl_tag.strip().rsplit(":", 1)
                     if seq_tag.startswith("chromosome"):
