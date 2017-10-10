@@ -2,19 +2,23 @@
 
 """Search for and report about genomes with repeated values."""
 
+from __future_ import print_function
 import argparse
 from collections import Counter
 import sys
 
 
 def report_repeats(counts, tag, number):
-    print "%ss number is %d" % (tag, len(counts))
+    print("%ss number is %d" % (tag, len(counts)), file=sys.stderr)
     if counts and sum(counts.values()) != len(counts):
         for key, count in counts.most_common(number):
             if count > 1:
-                print "\t%s is repeated %d times" % (key, count)
+                print(
+                    "\t%s is repeated %d times" % (key, count),
+                    file=sys.stderr
+                )
     else:
-        print "\tThere is no repeated %ss" % tag
+        print("\tThere is no repeated %ss" % tag, file=sys.stderr)
 
 
 def main(argv=None):
