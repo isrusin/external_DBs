@@ -1,20 +1,29 @@
 #! /bin/bash
 
-WDIR=$(dirname "$0")
+SDIR=$(dirname "$0")
 
-date "+%D %T"
+WDIR="."
+if [ -n "$1" ]
+    then if [ -d "$1" ] || mkdir "$1"
+        then WDIR=$1
+        else printf "Bad working folder name!\n"; exit 1
+    fi
+fi
+
+date "+%d-%m-%Y %T"
+printf "Working folder: $WDIR\n"
 
 wget -nv -NP "$WDIR" ftp://ftp.ncbi.nih.gov/pub/taxonomy/taxdump.tar.gz
 
 printf "\nParsing NCBI taxdump archive ...\n"
-time $WDIR/parse_taxdump.py "$WDIR/taxdump.tar.gz" -o "$WDIR/taxonomy.tab"
+$SDIR/parse_taxdump.py "$WDIR/taxdump.tar.gz" -o "$WDIR/taxonomy.tsv"
 
 printf "\nExtracting prokaryotic subtree ...\n"
-time $WDIR/extract_subtree.py 2 2157 \
-    -i "$WDIR/taxonomy.tab" -o "$WDIR/taxonomy_prokaryotes.tab"
+$SDIR/extract_subtree.py 2 2157 \
+    -i "$WDIR/taxonomy.tsv" -o "$WDIR/taxonomy_prokaryotes.tsv"
 
 printf "\nExtracting viral subtree ...\n"
-time $WDIR/extract_subtree.py 10239 12884 \
-    -i "$WDIR/taxonomy.tab" -o "$WDIR/taxonomy_viruses.tab"
+$SDIR/extract_subtree.py 10239 12884 \
+    -i "$WDIR/taxonomy.tsv" -o "$WDIR/taxonomy_viruses.tsv"
 
-date "+%D %T"
+date "+%d-%m-%Y %T"
