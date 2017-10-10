@@ -1,35 +1,48 @@
 #! /bin/bash
 
-WDIR=$(dirname $0)
-TAXDIR="$WDIR/../NCBI_Taxonomy"
-if [ -n "$1" ]; then TAXDIR=$1; fi
+SDIR=$(dirname "$0")
 
-printf "Taxonomy source: $TAXDIR\n"
+TAXDIR="."
+if [ -d "$1" ]
+    then TAXDIR="$1"
+    else printf "Usage: <script> TAXDIR [WDIR]\n"; exit
+fi
 
-date "+%D %T"
+WDIR="."
+if [ -n "$2" ]
+    then if [ -d "$2" ] || mkdir "$2"
+        then WDIR="$2"
+        else printf "Bad working folder name!\n"; exit 1
+    fi
+fi
+
+TAG="$(date "+%y%m%d")_{}"
+
+date "+%d-%m-%Y %T"
+printf "Working folder: $WDIR\nTaxonomy source: $TAXDIR\nID tag: $TAG\n"
 
 wget -nv -NP "$WDIR" \
     ftp://ftp.ncbi.nlm.nih.gov/genomes/GENOME_REPORTS/prokaryotes.txt
 
 printf "\nFiltering the list of genomes ...\n"
-time $WDIR/filter_genomes.py --with-chromosomes --min-size=0.1 \
-    -o "$WDIR/complete_genomes.tab" "$WDIR/prokaryotes.txt" \
+"$SDIR/filter_genomes.py" --with-chromosomes --min-size=0.1 \
+    -o "$WDIR/complete_prokaryotes.tsv" "$WDIR/prokaryotes.txt" \
     "Complete" "Complete Genome" "Chromosome"
 
 printf "\nSearching for repeated IDs ...\n"
-time $WDIR/report_repeats.py "$WDIR/complete_genomes.tab"
+"$SDIR/report_repeats.py" "$WDIR/complete_prokaryotes.tsv"
 
 printf "\nEnumerating genomes ...\n"
-time $WDIR/enumerate_genomes.py -o "$WDIR/enumerated_genomes.tab" \
-    "$WDIR/complete_genomes.tab" "$TAXDIR/taxonomy_prokaryotes.tab"
+"$SDIR/enumerate_genomes.py" -I "$TAG" -o "$WDIR/genomes.tsv" \
+    "$WDIR/complete_prokaryotes.tsv" "$TAXDIR/taxonomy_prokaryotes.tsv"
 
-tail -n+2 "$WDIR/enumerated_genomes.tab" | cut -f 4 | \
-    grep -Eo "[^,]+" | sort -u > chromosomes.acv
+tail -n+2 "$WDIR/genomes.tsv" | cut -f 4 | \
+    grep -Eo "[^,]+" | sort -u > "$WDIR/chromosomes.acv"
 
-tail -n+2 "$WDIR/enumerated_genomes.tab" | cut -f 5 | \
-    grep -Eo "[^,]+" | sort -u > plasmids.acv
+tail -n+2 "$WDIR/genomes.tsv" | cut -f 5 | \
+    grep -Eo "[^,]+" | sort -u > "$WDIR/plasmids.acv"
 
-tail -n+2 "$WDIR/enumerated_genomes.tab" | cut -f 6 | \
-    grep -Eo "[^,]+" | sort -u > other.acv
+tail -n+2 "$WDIR/genomes.tsv" | cut -f 6 | \
+    grep -Eo "[^,]+" | sort -u > "$WDIR/other.acv"
 
-date "+%D %T"
+date "+%d-%m-%Y %T"
