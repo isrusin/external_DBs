@@ -2,7 +2,7 @@
 
 """Search for and report about genomes with repeated values."""
 
-from __future_ import print_function
+from __future__ import print_function
 import argparse
 from collections import Counter
 import sys
