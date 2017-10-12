@@ -17,6 +17,15 @@ def load_taxons(intax):
     return taxons
 
 
+def message(msg, *args, **kwargs):
+    level = kwargs.pop("level", "info")
+    stream = kwargs.pop("stream", sys.stderr)
+    print(
+        "%s: %s" % (level.capitalize(), msg.format(*args, **kwargs)),
+        file=stream
+    )
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(
         description="Append taxonomy and reformat genomes table."
@@ -39,30 +48,37 @@ def main(argv=None):
         columns = intab.readline().strip("\n#").split("\t")
         index = dict((col, ind) for ind, col in enumerate(columns))
         outab.write(
-            "#:Assembly AC\tTaxID\tOrganism name\tStatus\tWGS\t"
-            "Chromosomes\tPlasmids\tOther\tTaxonomy (rank|taxid|name)\n"
+            "#:Assembly AC\tStatus\tChromosomes\tPlasmids\tOther\tWGS\t"
+            "Size, Mb\tTaxID\tOrganism name\tSpecies taxID\tSpecies name\t"
+            "Full taxonomy |rank:taxid:name|\n"
         )
         num = 0
         for line in intab:
             vals = line.strip().split("\t")
-            name = vals[index["Organism/Name"]]
-            taxid = vals[index["TaxID"]]
             asac = vals[index["Assembly Accession"]]
             status = vals[index["Status"]].split(" ")[-1]
             wgs = vals[index["WGS"]].strip("-")
-            ouline = [asac, taxid, name, status, wgs]
+            size = vals[index["Size (Mb)"]]
+            orid = taxid = vals[index["TaxID"]]
+            name = vals[index["Organism/Name"]]
+            spid = ""
+            spname = ""
             taxonomy = []
             while taxid in taxons:
                 parent, sname, rank = taxons[taxid]
-                if taxonomy or rank == "species":
-                    taxonomy.append("%s|%s|%s" % (rank, taxid, sname))
+                taxonomy.append(",".join([rank, taxid, sname]))
+                if rank == "species":
+                    spid = taxid
+                    spname = sname
                 taxid = parent
             if not taxonomy:
-                print(
-                    "Warning: assembly %s has invalid taxID" % asac,
-                    "or no species, skipped!", file=sys.stderr
+                message(
+                    "assembly {} has invalid or outdated taxID, skipped",
+                    asac, level="warning"
                 )
                 continue
+            if not spid:
+                message("assembly {} has no species", asac)
             chromosomes = set()
             plasmids = set()
             other = set()
@@ -70,10 +86,9 @@ def main(argv=None):
             if replicons != "-":
                 for tag in replicons.split("; "):
                     if ":" not in tag:
-                        print(
-                            "Info: assembly %s contains replicon" % asac,
-                            "'%s' without sequence AC." % tag,
-                            file=sys.stderr
+                        message(
+                            "assembly {} contains replicon {} without "
+                            "sequence AC", asac, tag
                         )
                         continue
                     seq_name, acv = tag.strip().split(":")
@@ -84,20 +99,18 @@ def main(argv=None):
                     else:
                         other.add(acv.strip("/"))
             else:
-                print(
-                    "Info: assembly %s has no replicons." % asac,
-                    file=sys.stderr
-                )
-            ouline.append(",".join(sorted(chromosomes)))
-            ouline.append(",".join(sorted(plasmids)))
-            ouline.append(",".join(sorted(other)))
-            ouline.extend(taxonomy)
+                message("assembly {} has no replicons", asac)
+            ouline = [
+                asac, status,
+                ",".join(sorted(chromosomes)),
+                ",".join(sorted(plasmids)),
+                ",".join(sorted(other)),
+                wgs, size, orid, name, spid, spname,
+                "|".join(taxonomy)
+            ]
             outab.write("\t".join(ouline) + "\n")
             num += 1
-    print(
-        "There are %d genomes in the resulted table." % num,
-        file=sys.stderr
-    )
+    message("{} genomes in the resulted table", num, level="summary")
 
 
 if __name__ == "__main__":
