@@ -51,13 +51,13 @@ def main(argv=None):
         default=0, help="minimum genome size (Mb), default is 0 Mb"
     )
     args = parser.parse_args(argv)
-    statuses = set(args.keep_status)
+    statuses = set(args.status)
     with args.intsv as intsv, args.outsv as outsv:
         title = intsv.readline()
         outsv.write(title)
         columns = title.strip("\t#: ").split("\t")
         c_index = dict([(col, ind) for ind, col in enumerate(columns)])
-        for line in intxt:
+        for line in intsv:
             vals = line.strip().split("\t")
             asac = vals[c_index["Assembly AC"]]
             if vals[c_index["Status"]] not in statuses:
