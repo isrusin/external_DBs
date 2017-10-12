@@ -22,25 +22,24 @@ printf "Working folder: $WDIR\nTaxonomy source: $TAXDIR\n"
 wget -nv -NP "$WDIR" \
     ftp://ftp.ncbi.nlm.nih.gov/genomes/GENOME_REPORTS/prokaryotes.txt
 
-printf "\nFiltering the list of genomes ...\n"
-"$SDIR/filter_genomes.py" --with-chromosomes --min-size=0.1 \
-    -o "$WDIR/complete_prokaryotes.tsv" "$WDIR/prokaryotes.txt" \
-    "Complete Genome" "Chromosome"
-
 printf "\nSearching for repeated IDs ...\n"
-"$SDIR/report_repeats.py" "$WDIR/complete_prokaryotes.tsv"
+"$SDIR/report_repeats.py" -n 5 "$WDIR/prokaryotes.txt"
 
 printf "\nAppending taxonomy ...\n"
-"$SDIR/add_taxonomy.py" -o "$WDIR/genomes.tsv" \
-    "$WDIR/complete_prokaryotes.tsv" "$TAXDIR/taxonomy_prokaryotes.tsv"
+"$SDIR/add_taxonomy.py" -o "$WDIR/assemblies.tsv" \
+    "$WDIR/prokaryotes.txt" "$TAXDIR/taxonomy_prokaryotes.tsv"
 
-tail -n+2 "$WDIR/genomes.tsv" | cut -f 6 | \
+printf "\nFiltering the list of genomes ...\n"
+"$SDIR/filter_genomes.py" --with-chromosomes --min-size=0.1 \
+    -o "$WDIR/genomes.tsv" "$WDIR/assemblies.tsv" "Genome"
+
+tail -n+2 "$WDIR/genomes.tsv" | cut -f 3 | \
     grep -Eo "[^,]+" | sort -u > "$WDIR/chromosomes.acv"
 
-tail -n+2 "$WDIR/genomes.tsv" | cut -f 7 | \
+tail -n+2 "$WDIR/genomes.tsv" | cut -f 4 | \
     grep -Eo "[^,]+" | sort -u > "$WDIR/plasmids.acv"
 
-tail -n+2 "$WDIR/genomes.tsv" | cut -f 8 | \
+tail -n+2 "$WDIR/genomes.tsv" | cut -f 5 | \
     grep -Eo "[^,]+" | sort -u > "$WDIR/other.acv"
 
 date "+%d-%m-%Y %T"
