@@ -1,10 +1,17 @@
 #! /bin/bash
 
+SDIR=$(dirname "$0") # source dir
+
 WDIR="REBASE" # working dir
-SDIR="." # source dir
-if [ -n "$1" ]; then WDIR=$1; fi
+if [ -n "$1" ]
+    then if [ -d "$1" ] || mkdir "$1"
+        then WDIR="$1"
+        else printf "Bad working folder name!\n"; exit 1
+    fi
+fi
 
 date "+%d/%m/%Y %T"
+printf "Working folder: $WDIR\n"
 
 mkdir -p "$WDIR/ftp"
 
