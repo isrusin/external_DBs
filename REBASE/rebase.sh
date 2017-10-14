@@ -1,7 +1,7 @@
 #! /bin/bash
 
-WDIR="REBASE"
-SDIR="scripts"
+WDIR="REBASE" # working dir
+SDIR="." # source dir
 if [ -n "$1" ]; then WDIR=$1; fi
 
 date "+%d/%m/%Y %T"
