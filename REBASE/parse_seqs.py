@@ -1,16 +1,20 @@
 #! /usr/bin/python
 
-import argparse as ap
+"""Parse REBASE FastA files preformatted with sed."""
+
+import argparse
+import sys
+
 
 def parse_EnzType(tag):
     tp = "-"
     act = ""
     put = "no"
-    for tptag in v.replace("/", " ").split(" "):
+    for tptag in tag.replace("/", " ").split(" "):
         if tptag == "putative":
             put = "yes"
         elif tptag in ["I", "II", "IIG", "III", "IV"]:
-            tp = "Type "+tptag
+            tp = "Type " + tptag
         elif tptag == "homing":
             tp = "Homing"
             act = "R"
@@ -32,6 +36,7 @@ def parse_EnzType(tag):
             tp += "M"
     return tp, act, put
 
+
 def add_entry(key, entry, entries):
     if key in entries:
         print "Note: repeated %s." % key
@@ -44,21 +49,22 @@ def add_entry(key, entry, entries):
     else:
         entries[key] = entry
 
-if __name__ == "__main__":
-    parser = ap.ArgumentParser(description="Parse REBASE seqs file.")
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description="Parse REBASE seqs file.")
     parser.add_argument(
-            "inseq", metavar="IN_SEQS.txt", type=ap.FileType("r"),
-            help="input REBASE fasta (preformated) file"
-            )
+        "inseq", metavar="FASTA<", type=argparse.FileType("r"),
+        help="input REBASE FastA (preformatted) file"
+    )
     parser.add_argument(
-            "outab", metavar="OUT.tab", type=ap.FileType("w"),
-            help="output tabular file"
-            )
+        "outsv", metavar="TSV>", type=argparse.FileType("w"),
+        help="output TSV file"
+    )
     parser.add_argument(
-            "ouseq", metavar="OUT.fasta", type=ap.FileType("w"),
-            help="output fasta file"
-            )
-    args = parser.parse_args()
+        "ouseq", metavar="FASTA>", type=argparse.FileType("w"),
+        help="output FastA file"
+    )
+    args = parser.parse_args(argv)
     entries = dict()
     with args.inseq as inseq:
         vals = dict()
@@ -92,22 +98,28 @@ if __name__ == "__main__":
                 seq += line.replace(" ", "")
         vals["Seq"] = seq
         add_entry(key, vals, entries)
-    with args.ouseq as ouseq, args.outab as outab:
-        outab.write(
-                "REBASE name\tGenBank AC\tR-M system type\t" +
-                "Protein type\tRecognition site\tLength\tLocus\t" +
-                "ProteinID\tUniprot AC\tGI\tPutative\tComplex name\n"
-                )
-        index = {"REBASE": 11, "EnzType": 3, "SysType": 2, "Putative": 10,
-                 "RecSeq": 4, "GenBank": 1, "SeqLength": 5, "Locus": 6,
-                 "ProteinId": 7, "UniProt": 8, "GI": 9}
+    with args.ouseq as ouseq, args.outsv as outsv:
+        outsv.write(
+            "#:REBASE name\tSequence AC\tSystem type\tProtein type\t"
+            "Recognition site\tLength\tLocus\tProtein ID\tUniprot AC\t"
+            "GI\tPutative\tComplex name\n"
+        )
+        index = {
+            "REBASE": 11, "EnzType": 3, "SysType": 2, "Putative": 10,
+            "RecSeq": 4, "GenBank": 1, "SeqLength": 5, "Locus": 6,
+            "ProteinId": 7, "UniProt": 8, "GI": 9
+        }
         for nm, entry in sorted(entries.items()):
             vals = ["-"] * 12
             vals[0] = nm
-            for k, v in entry.items():
-                if k == "Seq":
-                    ouseq.write(">%s\n%s\n" % (nm, v))
+            for key, value in entry.items():
+                if key == "Seq":
+                    ouseq.write(">%s\n%s\n" % (nm, value))
                 else:
-                    vals[index[k]] = v
-            outab.write("\t".join(vals) + "\n")
+                    vals[index[key]] = value
+            outsv.write("\t".join(vals) + "\n")
+
+
+if __name__ == "__main__":
+    sys.exit(main())
 
