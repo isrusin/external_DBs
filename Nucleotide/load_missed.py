@@ -209,6 +209,7 @@ def efetch_from_history(webenv, query_key, retstart=0, retmax=10000):
         "tool": TOOL_ID, "email": EMAIL
     }
     post_args = urlencode(args_dict).encode()
+    message(NOTE, "request efetch\n{}", post_args)
     req = Request(
         "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi",
         post_args, {"Content-Type": "application/x-www-form-urlencoded"}
