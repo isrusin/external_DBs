@@ -225,6 +225,7 @@ def efetch_from_history(webenv, query_key, retstart=0,
                 "efetch request failed, try #{} of {}\n{}",
                 try_num, retry_num, urlerror
             )
+            time.sleep(0.5)
             continue
     if response is None:
         message(ERROR, "giving up to request efetch!")
