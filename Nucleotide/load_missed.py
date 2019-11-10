@@ -201,7 +201,8 @@ def send_epost(acvs, webenv=None):
     return webenv, query_key
 
 
-def efetch_from_history(webenv, query_key, retstart=0, retmax=10000):
+def efetch_from_history(webenv, query_key, retstart=0,
+                        retmax=500, retry_num=5):
     args_dict = {
         "db": "nuccore", "rettype": "gbwithparts", "retmode": "text",
         "retstart": retstart, "retmax": retmax,
@@ -214,7 +215,20 @@ def efetch_from_history(webenv, query_key, retstart=0, retmax=10000):
         "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi",
         post_args, {"Content-Type": "application/x-www-form-urlencoded"}
     )
-    return urlopen(req)
+    response = None
+    for try_num in range(retry_num):
+        try:
+            response = urlopen(req)
+        except URLError as urlerror:
+            message(
+                WARNING,
+                "efetch request failed, try #{} of {}\n{}",
+                try_num, retry_num, urlerror
+            )
+            continue
+    if response is None:
+        message(ERROR, "giving up to request efetch!")
+    return response
 
 
 def parse_efetch_response(wdir, response):
