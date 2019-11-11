@@ -18,6 +18,7 @@ import socket
 import sys
 import time
 
+from itertools import islice
 from urllib.request import Request, urlopen
 from urllib.parse import urlencode
 from urllib.error import URLError
@@ -201,11 +202,9 @@ def send_epost(acvs, webenv=None):
     return webenv, query_key
 
 
-def efetch_from_history(webenv, query_key, retstart=0,
-                        retmax=500, retry_num=5):
+def efetch_from_history(webenv, query_key):
     args_dict = {
         "db": "nuccore", "rettype": "gbwithparts", "retmode": "text",
-        "retstart": retstart, "retmax": retmax,
         "WebEnv": webenv, "query_key": query_key,
         "tool": TOOL_ID, "email": EMAIL
     }
@@ -216,19 +215,10 @@ def efetch_from_history(webenv, query_key, retstart=0,
         post_args, {"Content-Type": "application/x-www-form-urlencoded"}
     )
     response = None
-    for try_num in range(retry_num):
-        try:
-            response = urlopen(req)
-        except URLError as urlerror:
-            message(
-                WARNING,
-                "efetch request failed, try #{} of {}\n{}",
-                try_num, retry_num, urlerror
-            )
-            time.sleep(0.5)
-            continue
-    if response is None:
-        message(ERROR, "giving up to request efetch!")
+    try:
+        response = urlopen(req)
+    except URLError as urlerror:
+        message(WARNING, "efetch request failed\n{}", urlerror)
     return response
 
 
@@ -247,16 +237,29 @@ def parse_efetch_response(wdir, response):
     return loaded
 
 
-def epost_efetch_pipeline(wdir, acvs, fetch_num=500):
-    webenv, query_key = send_epost(acvs)
+def epost_efetch_pipeline(wdir, acvs, chunk_size=500):
+    acv_iter = iter(acvs)
+    toload = islice(acv_iter, chunk_size)
     loaded = set()
-    for fetch_start in range(0, len(acvs), fetch_num):
-        response = efetch_from_history(
-            webenv=webenv, query_key=query_key,
-            retstart=fetch_start, retmax=fetch_num
-        )
-        loaded.update(parse_efetch_response(wdir, response))
-        time.sleep(0.5)
+    retry_num = 5
+    webenv = None
+    while toload:
+        try:
+            webenv, query_key = send_epost(acvs, webenv=webenv)
+            response = efetch_from_history(
+                webenv=webenv, query_key=query_key,
+                retstart=fetch_start, retmax=fetch_num
+            )
+            loaded.update(parse_efetch_response(wdir, response))
+            retry_num = 5
+        except URLError as http_error:
+            message(WARNING, "Entrez pipeline failed\n{}", http_error)
+            retry_num -= 1
+            if retry_num < 0:
+                message(ERROR, "give up to resubmit query!")
+                break
+            else:
+                time.sleep(0.5)
     if not hasattr(acvs, "difference"):
         acvs = set(acvs)
     missed = acvs.difference(loaded)
@@ -279,17 +282,17 @@ def main(argv=None):
     wdir = args.wdir
     if not prepare_wdir(wdir):
         parser.error("bad working folder (-s option)")
-    fetch_num = 500
+    chunk_size = 500
     retry_num = 5
     acvs = load_acv_list(args.inacvs)
     for try_num in range(retry_num):
-        message(NOTE, "Try #{}".format(try_num + 1))
         toload = exclude_loaded(wdir, acvs)
         missed = epost_efetch_pipeline(
-            wdir, toload, fetch_num=fetch_num,
+            wdir, toload, chunk_size=chunk_size
         )
         if missed:
             message(WARNING, "{} entries were not loaded", len(missed))
+            message(NOTE, "Try #{}".format(try_num + 1))
             time.sleep(0.5)
         else:
             break
