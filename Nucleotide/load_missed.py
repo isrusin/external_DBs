@@ -248,7 +248,6 @@ def epost_efetch_pipeline(wdir, acvs, chunk_size=500):
             webenv, query_key = send_epost(acvs, webenv=webenv)
             response = efetch_from_history(
                 webenv=webenv, query_key=query_key,
-                retstart=fetch_start, retmax=fetch_num
             )
             loaded.update(parse_efetch_response(wdir, response))
             retry_num = 5
