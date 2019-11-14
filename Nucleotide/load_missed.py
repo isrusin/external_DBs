@@ -44,6 +44,7 @@ def message(level, text, *format_args, **format_kwargs):
         MESSAGE_TAGS[level], text,
         sep=": ", file=sys.stderr
     )
+    sys.stderr.flush()
 
 
 def prepare_wdir(wdir):
