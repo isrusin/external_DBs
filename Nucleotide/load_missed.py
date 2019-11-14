@@ -214,12 +214,7 @@ def efetch_from_history(webenv, query_key):
         "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi",
         post_args, {"Content-Type": "application/x-www-form-urlencoded"}
     )
-    response = None
-    try:
-        response = urlopen(req)
-    except URLError as urlerror:
-        message(WARNING, "efetch request failed\n{}", urlerror)
-    return response
+    return urlopen(req)
 
 
 def parse_efetch_response(wdir, response):
