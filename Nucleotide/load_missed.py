@@ -238,14 +238,14 @@ def parse_efetch_response(wdir, response):
 
 
 def epost_efetch_pipeline(wdir, acvs, chunk_size=500):
-    acv_iter = iter(acvs)
+    acv_iter = iter(sorted(acvs))
     toload = islice(acv_iter, chunk_size)
     loaded = set()
     retry_num = 5
     webenv = None
     while toload:
         try:
-            webenv, query_key = send_epost(acvs, webenv=webenv)
+            webenv, query_key = send_epost(toload, webenv=webenv)
             response = efetch_from_history(
                 webenv=webenv, query_key=query_key,
             )
