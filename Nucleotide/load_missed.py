@@ -235,7 +235,7 @@ def parse_efetch_response(wdir, response):
 
 def epost_efetch_pipeline(wdir, acvs, chunk_size=500):
     acv_iter = iter(sorted(acvs))
-    toload = islice(acv_iter, chunk_size)
+    toload = set(islice(acv_iter, chunk_size))
     loaded = set()
     retry_num = 5
     webenv = None
@@ -245,7 +245,7 @@ def epost_efetch_pipeline(wdir, acvs, chunk_size=500):
             response = efetch_from_history(
                 webenv=webenv, query_key=query_key,
             )
-            toload = islice(acv_iter, chunk_size)
+            toload = set(islice(acv_iter, chunk_size))
             loaded.update(parse_efetch_response(wdir, response))
             retry_num = 5
         except URLError as http_error:
