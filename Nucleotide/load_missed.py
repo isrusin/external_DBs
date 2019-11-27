@@ -297,33 +297,3 @@ def main(argv=None):
 if __name__ == "__main__":
     sys.exit(main())
 
-
-def __parse_ids_from_names(file_paths, path_regexp=None):
-    if path_regexp is None:
-        path_regexp=re.compile(
-            "(?:[^/]*/)*(?P<ID>.+)(?:\.[^.]+)?"
-        )
-    ids = set()
-    for file_path in file_paths:
-        path_match = path_regexp.fullmatch(file_path)
-        if path_match:
-            ids.add(path_match.group(1))
-    return ids
-
-
-def __recover_loaded_list(wdir):
-    ids_gbk = __parse_ids_from_names(
-        GBK_FOLDER_STUB.format(wdir=wdir),
-        path_regexp=re.compile(
-            "(?:[^/]*/)*(?P<ID>.+)\.gbk\.gz"
-        )
-    )
-    ids_fasta = __parse_ids_from_names(
-        FASTA_FOLDER_STUB.format(wdir=wdir),
-        path_regexp=re.compile(
-            "(?:[^/]*/)*(?P<ID>.+)\.fasta\.gz"
-        )
-    )
-    acvs = ids_gbk & ids_fasta
-    update_loaded_list(wdir, acvs, append=False)
-
