@@ -131,23 +131,30 @@ def check_fasta(wdir, acv, length):
     answer = True # file is good
     fasta_path = FASTA_FILE_STUB.format(wdir=wdir, acv=acv)
     smbl_counts = Counter()
-    with gzip.open(fasta_path, "rt") as infasta:
-        line = infasta.readline()
-        if line.startswith(">"):
-            acv_from_fasta, *_desc = line[1:].split()
-            if acv_from_fasta != acv:
-                answer = False
-                message(
-                    WARNING, "{} does not match fasta sequence ID {}",
-                    acv, acv_from_fasta
-                )
-        else:
-            message(WARNING, "{} has bad fasta format", acv)
-            return False
-
-        while line:
+    try:
+        with gzip.open(fasta_path, "rt") as infasta:
             line = infasta.readline()
-            smbl_counts.update(line.lower())
+            if line.startswith(">"):
+                acv_from_fasta, *_desc = line[1:].split()
+                if acv_from_fasta != acv:
+                    answer = False
+                    message(
+                        WARNING, "{} does not match fasta sequence ID {}",
+                        acv, acv_from_fasta
+                    )
+            else:
+                message(WARNING, "{} has bad fasta format", acv)
+                return False
+
+            while line:
+                line = infasta.readline()
+                smbl_counts.update(line.lower())
+    except (EOFError, OSError) as error:
+        message(
+            WARNING, "{} has IO problem with the fasta file:\n{}",
+            acv, error
+        )
+        return False
 
     group_counts = group_symbol_counts(smbl_counts)
     if group_counts["NUCLS"] != length:
@@ -179,42 +186,49 @@ def check_entry(wdir, acv):
     answer = True # entry is good
     gbk_path = GBK_FILE_STUB.format(wdir=wdir, acv=acv)
     length = None
-    with gzip.open(gbk_path, "rt") as ingbk:
-        line = ingbk.readline()
-        if line.startswith("LOCUS"):
-            try:
-                length = int(line.split()[2])
-            except (IndexError, ValueError):
+    try:
+        with gzip.open(gbk_path, "rt") as ingbk:
+            line = ingbk.readline()
+            if line.startswith("LOCUS"):
+                try:
+                    length = int(line.split()[2])
+                except (IndexError, ValueError):
+                    answer = False
+                    message(WARNING, "{} LOCUS line has bad format", acv)
+            else:
+                message(WARNING, "{} has bad gbk format", acv)
+                return False
+
+            while not line.startswith("VERSION"):
+                line = ingbk.readline()
+            _field, acv_from_gbk, *_etc = line.strip().split()
+            if acv_from_gbk != acv:
                 answer = False
-                message(WARNING, "{} LOCUS line has bad format", acv)
-        else:
-            message(WARNING, "{} has bad gbk format", acv)
-            return False
+                message(
+                    WARNING, "{} does not match gbk entry VERSION {}",
+                    acv, acv_from_gbk
+                )
 
-        while not line.startswith("VERSION"):
-            line = ingbk.readline()
-        _field, acv_from_gbk, *_etc = line.strip().split()
-        if acv_from_gbk != acv:
-            answer = False
-            message(
-                WARNING, "{} does not match gbk entry VERSION {}",
-                acv, acv_from_gbk
-            )
+            while line:
+                if line.startswith("//"):
+                    break
+                line = ingbk.readline()
+            else:
+                message(WARNING, "{} gbk file is truncated", acv)
+                return False
 
-        while line:
-            if line.startswith("//"):
-                break
-            line = ingbk.readline()
-        else:
-            message(WARNING, "{} gbk file is truncated", acv)
-            return False
-
-        if ingbk.readline().strip():
-            answer = False
-            message(
-                WARNING,
-                "{} has non-empty lines after entry end", acv
-            )
+            if ingbk.readline().strip():
+                answer = False
+                message(
+                    WARNING,
+                    "{} has non-empty lines after entry end", acv
+                )
+    except (EOFError, OSError) as error:
+        message(
+            WARNING, "{} has IO problem with the gbk file:\n{}",
+            acv, error
+        )
+        return False
     return answer and check_fasta(wdir, acv, length)
 
 
