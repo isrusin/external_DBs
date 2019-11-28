@@ -265,7 +265,7 @@ def main(argv=None):
         )
     if args.update_list:
         message(NOTE, "updating the list of loaded entires")
-        update_loaded_list(wdir, checked)
+        update_loaded_list(wdir, checked, append=False)
 
 
 if __name__ == "__main__":
