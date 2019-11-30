@@ -19,11 +19,11 @@ msite_p = re.compile(
     r"""
       (?:
         (?P<mst>  -? \d+ | \? ) \(
-        (?P<mtp>  N?[4-6]m[AC] | \? ) \)
+        (?P<mtp>  N?m[4-6][AC] | \? ) \)
       )
       (?: ,
         (?P<cmst>  -? \d+ | \? ) \(
-        (?P<cmtp>  N?[4-6]m[AC] | \? ) \)
+        (?P<cmtp>  N?m[4-6][AC] | \? ) \)
       )?;
     """, re.S | re.X
 )
