@@ -15,6 +15,9 @@ printf "Working folder: $WDIR\n"
 
 mkdir -p "$WDIR/ftp"
 
+printf "\n\tLoading VERSION ...\n"
+wget -nv -NP "$WDIR/ftp/" ftp://ftp.neb.com/pub/rebase/VERSION
+
 printf "\n\tLoading DNA sequences ...\n"
 wget -nv -NP "$WDIR/ftp/" ftp://ftp.neb.com/pub/rebase/dna_seqs.txt
 sed -i "1d; s/<>//; /^$/d" "$WDIR/ftp/dna_seqs.txt"
@@ -42,5 +45,8 @@ wget -nv -NP "$WDIR/ftp/" ftp://ftp.neb.com/pub/rebase/allenz.txt
 
 printf "\n\tParsing allenz ...\n"
 $SDIR/parse_allenz.py "$WDIR/ftp/allenz.txt" -o "$WDIR/allenz.tsv"
+
+printf "\n\tLoading linkoutenz ...\n"
+wget -nv -NP "$WDIR/ftp/" ftp://ftp.neb.com/pub/rebase/linkoutenz*.xml
 
 date "+%d/%m/%Y %T"
