@@ -45,7 +45,7 @@ def main(argv=None):
     with args.inlist as inlist, args.oufile as oufile:
         oufile.write(
             "#:Name\tSystem\tAcronim\tIndex\tHybrid\tSubunit\tPredicted"
-            "\tActivity\tHoming tag\tMutant\tUnknown\tProtein type\n"
+            "\tActivity\tHoming tag\tMutant\tUnknown\tProtein type (by name)\n"
         )
         for line in inlist:
             name = line.strip()
