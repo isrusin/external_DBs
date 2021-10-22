@@ -44,7 +44,7 @@ def main(argv=None):
     args = parser.parse_args(argv)
     with args.inlist as inlist, args.oufile as oufile:
         oufile.write(
-            "#:Name\tSystem\tAcronim\tIndex\tHybrid\tSubunit\tPredicted"
+            "#:REBASE name\tSystem\tAcronim\tIndex\tHybrid\tSubunit\tPredicted"
             "\tActivity\tHoming tag\tMutant\tUnknown\tProtein type (by name)\n"
         )
         for line in inlist:
