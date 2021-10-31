@@ -1,6 +1,6 @@
 #! /usr/bin/python
 
-"""Parse REBASE FastA files preformatted with sed."""
+"""Parse REBASE sequence files."""
 
 import argparse
 import sys
@@ -75,8 +75,8 @@ def main(argv=None):
                 if key:
                     vals["Seq"] = seq
                     add_entry(key, vals, entries)
-                    seq = ""
-                    vals = dict()
+                seq = ""
+                vals = dict()
                 nm = ""
                 ac = ""
                 for kv in line.strip("\n>").split("\t"):
@@ -95,6 +95,8 @@ def main(argv=None):
                     vals[k] = v
                 key = nm
             else:
+                if "<>" in line:
+                    line = line.replace("<>", "")
                 seq += line.replace(" ", "")
         vals["Seq"] = seq
         add_entry(key, vals, entries)
